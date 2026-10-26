@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<robot name="scara_300mm">
+
+  <!-- Fixed Base Mount -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder radius="0.04" length="0.1"/>
+      </geometry>
+      <material name="dark_grey">
+        <color rgba="0.2 0.2 0.2 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.04" length="0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="2.0"/>
+      <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- Link 1: Upper Arm (75mm structural length) -->
+  <link name="arm_1">
+    <visual>
+      <!-- Center visual box over the 75mm span -->
+      <origin xyz="0.0375 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.075 0.03 0.03"/>
+      </geometry>
+      <material name="silver">
+        <color rgba="0.8 0.8 0.8 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0375 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.075 0.03 0.03"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.3"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 1: Shoulder (Rotates around Base Z) -->
+  <joint name="joint_1" type="revolute">
+    <parent link="base_link"/>
+    <child link="arm_1"/>
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.09" upper="2.09" effort="10" velocity="2.0"/> <!-- +/- 120 deg -->
+  </joint>
+
+  <!-- Link 2: Forearm (75mm structural length) -->
+  <link name="arm_2">
+    <visual>
+      <!-- Center visual box over the 75mm span -->
+      <origin xyz="0.0375 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.075 0.025 0.025"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.1 0.4 0.8 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0375 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.075 0.025 0.025"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.15"/>
+      <inertia ixx="0.00003" ixy="0" ixz="0" iyy="0.00008" iyz="0" izz="0.00008"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 2: Elbow (Offset 75mm from Joint 1 along X) -->
+  <joint name="joint_2" type="revolute">
+    <parent link="arm_1"/>
+    <child link="arm_2"/>
+    <origin xyz="0.075 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.61" upper="2.61" effort="5" velocity="2.5"/> <!-- +/- 150 deg -->
+  </joint>
+
+  <!-- Link 3: Z-Axis Tool Quill (Prismatic) -->
+  <link name="z_quill">
+    <visual>
+      <geometry>
+        <cylinder radius="0.008" length="0.12"/>
+      </geometry>
+      <material name="dark_grey"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.008" length="0.12"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.08"/>
+      <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.000002"/>
+    </inertial>
+  </link>
+
+  <!-- Joint 3: Z Prismatic (Offset 75mm from Joint 2 along X) -->
+  <joint name="joint_z" type="prismatic">
+    <parent link="arm_2"/>
+    <child link="z_quill"/>
+    <origin xyz="0.075 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.05" upper="0.05" effort="15" velocity="0.3"/> <!-- 100mm stroke -->
+  </joint>
+    <gazebo>
+    <plugin filename="libgz_ros2_control-system.so"
+            name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>
+        $(find scara_pole_marker_moveit_config)/config/ros2_controllers.yaml
+      </parameters>
+    </plugin>
+  </gazebo> 
+    
+<ros2_control name="SCARA_SimSystem" type="system">
+  <hardware>
+    <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+  </hardware>
+
+  <joint name="joint_1">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+
+  <joint name="joint_2">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+
+  <joint name="joint_z">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+</ros2_control>
+
+
+</robot>

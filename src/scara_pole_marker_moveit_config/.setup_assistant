@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: scara_pole_marker
+    relative_path: urdf/scara_robot.urdf.xacro
+  srdf:
+    relative_path: config/simple_scara.srdf
+  package_settings:
+    author_name: ""
+    author_email: ""
+    generated_timestamp: 1792648631
